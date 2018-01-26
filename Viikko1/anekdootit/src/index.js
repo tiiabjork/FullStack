@@ -38,8 +38,7 @@ class App extends React.Component {
     this.setState({aanet: kopio})
   }
 
-  mostVoted = () => () => {
-    console.log('ollanko sisällä')
+  mostVoted() {
     var aanestetyin = 0
     var aanimaara = 0
     var i = 0
@@ -49,12 +48,20 @@ class App extends React.Component {
         aanimaara = this.state.aanet[i]
       }
     }
-    console.log(aanestetyin)
     return this.props.anecdotes[aanestetyin]
   }
 
-  getVote = (anecdote) => () => {
-    return this.state.aanet[anecdote]
+  getVotes() {
+    var aanestetyin = 0
+    var aanimaara = 0
+    var i = 0
+    for (i = 0 ; i < 6 ; i++){
+      if (this.state.aanet[i] > aanimaara) {
+        aanestetyin = i
+        aanimaara = this.state.aanet[i]
+      }
+    }
+    return this.state.aanet[aanestetyin]
   }
 
   render() {
@@ -73,7 +80,7 @@ class App extends React.Component {
         <h2>Anecdote with the most votes:</h2>
         <MostVoted
           anecdote={this.mostVoted()}
-          votes={this.getVote(this.mostVoted())}
+          votes={this.getVotes()}
         />
       </div>
     )
