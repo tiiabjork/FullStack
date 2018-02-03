@@ -1,6 +1,7 @@
 import React from 'react';
 import Person from './components/Person'
-import axios from 'axios'
+import personService from './services/persons'
+import Notification from './components/Notification'
 
 class App extends React.Component {
   constructor(props) {
@@ -10,17 +11,15 @@ class App extends React.Component {
       newName: '',
       newNumber: '',
       showAll: true,
-      search: ''
+      search: '',
+      notification: null
     }
-    console.log('constructor')
   }
 
-  componentDidMount() {
-    console.log('will mount')
-    axios
-      .get('http://localhost:3001/persons')
+  componentWillMount() {
+    personService
+      .getAll()
       .then(response => {
-        console.log('promise fullfilled')
         this.setState({ persons: response.data })
       })
   }
@@ -28,6 +27,7 @@ class App extends React.Component {
   addPerson = (event) => {
     event.preventDefault()
 
+    //tarkistetaan, löytyykö henkilö jo
     for (let i = 0; i < this.state.persons.length; i++) {
       if (this.state.persons[i].name.toLocaleUpperCase() === this.state.newName.toLocaleUpperCase()) {
         this.setState({ newName: ''})
@@ -41,13 +41,36 @@ class App extends React.Component {
       number: this.state.newNumber
     }
 
-    const persons = this.state.persons.concat(personObject)
+    personService
+      .create(personObject)
+      .then(response => {
+        this.setState({
+          persons: this.state.persons.concat(response.data),
+          newName: '',
+          newNumber:'',
+          notification : `Uusi henkilö lisättiin onnistuneesti puhelinluetteloon.`
+        })
+        setTimeout(() => this.setState({notification: null}), 5000)
+      })
+  }
 
-    this.setState({
-      persons,
-      newName: '' ,
-      newNumber: ''
-    })
+  removePerson = (id) => {
+    //etsitään henkilö
+    const personToRemove = this.state.persons.filter(person => person.id === id)
+
+    if (window.confirm(`Haluatko varmasti poistaa henkilön ${personToRemove.name}`)) {
+      const remainingPersons = this.state.persons.filter(person => person.id !== id)
+
+      personService
+        .remove(id)
+        .then( () => {
+          this.setState({
+            persons: remainingPersons,
+            notification: `Henkilö poistettu onnistuneesti!`
+          })
+          setTimeout(() => this.setState({notification: null}), 5000)
+        })
+    }
   }
 
   handleNameChange = (event) => {
@@ -72,6 +95,7 @@ class App extends React.Component {
         this.state.persons : this.state.persons.filter(person => person.name.includes(this.state.search))
     return (
       <div>
+        <Notification message={this.state.notification} />
         <h2>Haku</h2>
           <div>
             nimi: <input
@@ -101,7 +125,7 @@ class App extends React.Component {
         <h2>Numerot</h2>
           <table>
             <tbody>
-              {namesToShow.map(person => <Person key={person.name} person={person}/>)}
+              {namesToShow.map(person => <Person key={person.id} person={person} onRemove={this.removePerson}/>)}
             </tbody>
           </table>
       </div>
