@@ -30,7 +30,7 @@ class App extends React.Component {
     //tarkistetaan, löytyykö henkilö jo
     for (let i = 0; i < this.state.persons.length; i++) {
       if (this.state.persons[i].name.toLocaleUpperCase() === this.state.newName.toLocaleUpperCase()) {
-        this.setState({ newName: ''})
+        this.setState({ newName: '', newNumber: ''})
         alert('Kokeileppa uudestaa, nimi löytyy jo')
         return
       }
